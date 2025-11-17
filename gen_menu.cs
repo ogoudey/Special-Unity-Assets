@@ -282,13 +282,13 @@ public class GenerationWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
         GUILayout.Label("Generation Name", GUILayout.Width(150));
-        GUILayout.Label("Subject Name", GUILayout.Width(150));
+        GUILayout.Label("Participant", GUILayout.Width(150));
         GUILayout.Label("Rename...", GUILayout.Width(80));
         GUILayout.Label("Reassign...", GUILayout.Width(80));
         GUILayout.Label("More Info", GUILayout.Width(80));
         GUILayout.Label("Test", GUILayout.Width(60));
         GUILayout.Label("Approve", GUILayout.Width(80));
-        GUILayout.Label("Copy?", GUILayout.Width(60));
+        GUILayout.Label("Duplicate", GUILayout.Width(100));
         GUILayout.Label("Delete", GUILayout.Width(60));
         EditorGUILayout.EndHorizontal();
 
@@ -506,7 +506,7 @@ public class GenerationWindow : EditorWindow
         // Table header
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Scene Name", EditorStyles.boldLabel, GUILayout.Width(200));
-        GUILayout.Label("Subject Name", EditorStyles.boldLabel, GUILayout.Width(200));
+        GUILayout.Label("Participant Name", EditorStyles.boldLabel, GUILayout.Width(200));
         GUILayout.Label("Actions", EditorStyles.boldLabel, GUILayout.Width(100));
         EditorGUILayout.EndHorizontal();
 
@@ -917,7 +917,7 @@ public class RunExperimentWindow : EditorWindow
             return;
         }
         int selectedIndex = 0;
-        selectedIndex = EditorGUILayout.Popup("Select Subject", selectedIndex, targetSubjects.ToArray());
+        selectedIndex = EditorGUILayout.Popup("Select Participant", selectedIndex, targetSubjects.ToArray());
 
         string selectedSubject = targetSubjects[selectedIndex];
         UnityEngine.Debug.Log($"Starting experiment on {selectedSubject}.");
