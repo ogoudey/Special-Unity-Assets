@@ -282,13 +282,13 @@ public class GenerationWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
         GUILayout.Label("Generation Name", GUILayout.Width(150));
-        GUILayout.Label("Participant", GUILayout.Width(150));
+        GUILayout.Label("Subject Name", GUILayout.Width(150));
         GUILayout.Label("Rename...", GUILayout.Width(80));
         GUILayout.Label("Reassign...", GUILayout.Width(80));
         GUILayout.Label("More Info", GUILayout.Width(80));
         GUILayout.Label("Test", GUILayout.Width(60));
         GUILayout.Label("Approve", GUILayout.Width(80));
-        GUILayout.Label("Duplicate", GUILayout.Width(100));
+        GUILayout.Label("Copy?", GUILayout.Width(60));
         GUILayout.Label("Delete", GUILayout.Width(60));
         EditorGUILayout.EndHorizontal();
 
@@ -506,7 +506,7 @@ public class GenerationWindow : EditorWindow
         // Table header
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Scene Name", EditorStyles.boldLabel, GUILayout.Width(200));
-        GUILayout.Label("Participant Name", EditorStyles.boldLabel, GUILayout.Width(200));
+        GUILayout.Label("Subject Name", EditorStyles.boldLabel, GUILayout.Width(200));
         GUILayout.Label("Actions", EditorStyles.boldLabel, GUILayout.Width(100));
         EditorGUILayout.EndHorizontal();
 
@@ -694,64 +694,34 @@ public class GenerationWindow : EditorWindow
 
     private void Generate()
     {
-        ProcessStartInfo psi;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            string scriptPath = Path.GetFullPath(Path.Combine(backendPath, "generate.ps1"));
-            UnityEngine.Debug.Log(scriptPath);
+            string url =
+                "http://127.0.0.1:5000/generate" +
+                $"?scene_name={UnityWebRequest.EscapeURL(generationName)}" +
+                $"&prompt={UnityWebRequest.EscapeURL(promptText)}" +
+                $"&assets={UnityWebRequest.EscapeURL(Application.dataPath)}";
 
-            if (!File.Exists(scriptPath))
+            using UnityWebRequest request = UnityWebRequest.Get(url);
+
+            var operation = request.SendWebRequest();
+
+            while (!operation.isDone)
+                await Task.Yield();
+
+            if (request.result != UnityWebRequest.Result.Success)
             {
-                UnityEngine.Debug.LogError($"Script not found: {scriptPath}");
-                return;
+                UnityEngine.Debug.LogError(request.error);
             }
-
-            UnityEngine.Debug.Log(promptText);
-            UnityEngine.Debug.Log($"Running powershell with args \"{assetProject}\" \"{promptText}\" \"{generationName}\" \"{use_asset_project_generator_class}\"");
-            
-            string psArgs = $"-ExecutionPolicy Bypass -File \"{scriptPath}\" " +
-                    $"\"{assetProject}\" \"{promptText}\" \"{generationName}\" \"{use_asset_project_generator_class}\"";
-
-            UnityEngine.Debug.Log(psArgs);
-            
-            psi = new ProcessStartInfo()
+            else
             {
-                FileName = "powershell.exe",
-                Arguments = psArgs,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-        }
-        else // Linux, MacOS
-        {
-            string scriptPath = Path.GetFullPath(Path.Combine(backendPath, "generate.sh"));
-            UnityEngine.Debug.Log(scriptPath);
-            if (!File.Exists(scriptPath))
-            {
-                UnityEngine.Debug.LogError($"Script not found: {scriptPath}");
-                return;
+                UnityEngine.Debug.Log("Generation started");
             }
-
-            // Construct the bash command arguments
-            string bashArgs = $"\"{scriptPath}\" \"{assetProject}\" \"{promptText}\" \"{generationName}\" \"{use_asset_project_generator_class.ToString()}\"";
-
-            psi = new ProcessStartInfo()
-            {
-                FileName = "/bin/bash",
-                Arguments = bashArgs,
-                RedirectStandardOutput = runSync,
-                RedirectStandardError = runSync,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
         }
 
         Dictionary<string, string> dict = new Dictionary<string, string>();
         dict["Subject"] = string.IsNullOrEmpty(targetSubject) ? "Unknown" : targetSubject;
         dict["Prompt"] = string.IsNullOrEmpty(promptText) ? "" : promptText;
-        dict["Asset Project"] = string.IsNullOrEmpty(assetProject) ? "" : assetProject;
+        dict["Assets"] = string.IsNullOrEmpty(Application.dataPath) ? "" : Application.dataPath;
         dict["Approved"] = "false";
 
         if (generations.ContainsKey(generationName))
@@ -764,31 +734,6 @@ public class GenerationWindow : EditorWindow
             generations.Add(generationName, dict);
 
             SaveGenerations();
-        }
-        UnityEngine.Debug.Log(generations);
-
-        if (runSync == true)
-        {
-            using (Process process = new Process())
-            {
-                process.StartInfo = psi;
-                process.Start();
-
-                string output = process.StandardOutput.ReadToEnd();
-                string errors = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-
-                UnityEngine.Debug.Log($"✅ Bash output:\n{output}");
-                if (!string.IsNullOrEmpty(errors))
-                    UnityEngine.Debug.LogWarning($"⚠️ Bash errors:\n{errors}");
-            }
-        }
-        else
-        {
-            Process process = new Process { StartInfo = psi };
-            process.Start();
-
-            UnityEngine.Debug.Log($"🚀 Generation {generationName} started!");
         }
     }
 
@@ -917,7 +862,7 @@ public class RunExperimentWindow : EditorWindow
             return;
         }
         int selectedIndex = 0;
-        selectedIndex = EditorGUILayout.Popup("Select Participant", selectedIndex, targetSubjects.ToArray());
+        selectedIndex = EditorGUILayout.Popup("Select Subject", selectedIndex, targetSubjects.ToArray());
 
         string selectedSubject = targetSubjects[selectedIndex];
         UnityEngine.Debug.Log($"Starting experiment on {selectedSubject}.");
