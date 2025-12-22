@@ -8,6 +8,9 @@ using System.Diagnostics;
 using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.Collections.Generic;
+using UnityEngine.Networking;
+using System.Text;
+using System.Threading.Tasks;
 
 public class GenerationWindow : EditorWindow
 {
