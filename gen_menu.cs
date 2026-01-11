@@ -16,9 +16,10 @@ public class GenerationWindow : EditorWindow
 {
 
     private int selectedTab = 0;
-    private string[] tabs = { "Generate", "Generations", "Scenes", "Settings" };
+    private string[] tabs = { "Generate", "Scenes", "Settings" };
 
     // Generate tab fields
+    private string generationName = "";
     private string userPrompt = "";
     private bool premadePromptToggle = false;
     private string[] premadePrompts = {
@@ -28,13 +29,16 @@ public class GenerationWindow : EditorWindow
     };
     private int selectedPromptIndex = 0;
     private string promptText = "";
-    private string generationName = "";
+    private bool assignSubjectLaterToggle = true;
+    
+    
+    
     private string targetSubject = "";
     private int targetSubjectIndex = 0;
     public List<string> targetSubjects;
     private string newSubject = "";
-    private bool use_asset_project_generator_class = true;
-    private bool runSync = false;
+
+
     private Dictionary<string, bool> expandedLogs = new Dictionary<string, bool>();
     private Dictionary<string, Vector2> logScrolls = new Dictionary<string, Vector2>();
     private Dictionary<string, string> subjects2Generations = new Dictionary<string, string>();
@@ -54,11 +58,11 @@ public class GenerationWindow : EditorWindow
     private string renameTarget = "";
     private string renameGeneration = null;
 
-    private string infoGeneration = null;
+    private string editWorld = null;
 
     public static readonly string assetProjectDir = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
     public static readonly string assetProject = new DirectoryInfo(assetProjectDir).Name;
-    private string backendPath = Path.Combine(assetProjectDir, "../../../Backend");
+    private string backendPath = Path.Combine(assetProjectDir, "../");
 
     private string rootPath = "../..";  // ".." means one folder above Assets (the project root)
     private string[] folderOptions;
@@ -98,12 +102,9 @@ public class GenerationWindow : EditorWindow
                 DrawGenerateTab();
                 break;
             case 1:
-                DrawGenerationsTab();
-                break;
-            case 2:
                 DrawScenesTab();
                 break;
-            case 3:
+            case 2:
                 DrawSettingsTab();
                 break;
         }
@@ -114,24 +115,33 @@ public class GenerationWindow : EditorWindow
 
     private void DrawGenerateTab()
     {
-        EditorGUILayout.LabelField("Generate New Prompt", EditorStyles.boldLabel);
+        // Prompt division
+
+        EditorGUILayout.LabelField("Generate New World", EditorStyles.boldLabel);
         EditorGUILayout.Space();
+
+
+        generationName = EditorGUILayout.TextField("World name:", generationName);
+
         userPrompt = EditorGUILayout.TextField("Prompt:", userPrompt);
         premadePromptToggle = EditorGUILayout.Toggle($"Use premade prompt", premadePromptToggle);
         if (premadePromptToggle == true)
-            selectedPromptIndex = EditorGUILayout.Popup("    Prompt:", selectedPromptIndex, premadePrompts);
+            selectedPromptIndex = EditorGUILayout.Popup("    Prompt:", selectedPromptIndex, premadePrompts);   
+        
+        assignSubjectLaterToggle = EditorGUILayout.Toggle($"Assign subject later", assignSubjectLaterToggle);
+        if (assignSubjectLaterToggle == false)
+        {
+            targetSubjectIndex = EditorGUILayout.Popup("Subject:", targetSubjectIndex, targetSubjects.ToArray());
+            newSubject = EditorGUILayout.TextField("New subject name:", newSubject);
+            if (GUILayout.Button("Add new subject", GUILayout.Width(120)))
+                if (!string.IsNullOrEmpty(newSubject))
+                    targetSubjects.Add(newSubject);
+        }         
+        
         EditorGUILayout.Space();
-        targetSubjectIndex = EditorGUILayout.Popup("Subject:", targetSubjectIndex, targetSubjects.ToArray());
-        newSubject = EditorGUILayout.TextField("New subject name:", newSubject);
-        if (GUILayout.Button("Add new subject", GUILayout.Width(120)))
-            if (!string.IsNullOrEmpty(newSubject))
-                targetSubjects.Add(newSubject);
-        EditorGUILayout.Space();
-        generationName = EditorGUILayout.TextField("Generation name:", generationName);
-        use_asset_project_generator_class = EditorGUILayout.Toggle($"Use {assetProject}", use_asset_project_generator_class);
-        runSync = EditorGUILayout.Toggle($"Run synchronously", runSync);
+        
 
-        if (GUILayout.Button("Generate", GUILayout.Width(150)))
+        if (GUILayout.Button("Go", GUILayout.Width(150)))
         {
             if (premadePromptToggle == true && selectedPromptIndex > 0)
             {
@@ -141,19 +151,16 @@ public class GenerationWindow : EditorWindow
             {
                 promptText = userPrompt;
             }
-            targetSubject = targetSubjects[targetSubjectIndex];
-            if (string.IsNullOrEmpty(targetSubject))
-                EditorUtility.DisplayDialog("Error", "Please choose a subject for the generation.", "OK");
+            if (targetSubjects.Count > 0)
+                targetSubject = targetSubjects[targetSubjectIndex];
             if (string.IsNullOrEmpty(generationName))
             {
-                EditorUtility.DisplayDialog("Error", "Please fill out a name for the generation.", "OK");
+                EditorUtility.DisplayDialog("Error", "Please fill out a name for the world.", "OK");
             }
             else
             {
-                UnityEngine.Debug.Log($"Generating '{generationName}' with prompt: {promptText}");
+                UnityEngine.Debug.Log($"Generating '{generationName}' with prompt '{promptText}' for {targetSubject}");
                 subjects2Generations[generationName] = targetSubject;
-
-                UnityEngine.Debug.Log($"Generating world for {targetSubject}");
                 Generate();
 
                 string path = Path.Combine(Application.dataPath, "Generations");
@@ -166,7 +173,12 @@ public class GenerationWindow : EditorWindow
         EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
         EditorGUILayout.Space();
 
-        // Active Generations Section
+        // Edit division
+        DrawGenerationsTab();
+        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+        EditorGUILayout.Space();
+
+        // Active Generations division
         GUILayout.Label("Active Generations", EditorStyles.boldLabel);
 
         string logsDir = Path.Combine(backendPath, "logs");
@@ -284,14 +296,14 @@ public class GenerationWindow : EditorWindow
         EditorGUILayout.Space();
 
         EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-        GUILayout.Label("Generation Name", GUILayout.Width(150));
-        GUILayout.Label("Subject Name", GUILayout.Width(150));
-        GUILayout.Label("Rename...", GUILayout.Width(80));
-        GUILayout.Label("Reassign...", GUILayout.Width(80));
-        GUILayout.Label("More Info", GUILayout.Width(80));
-        GUILayout.Label("Test", GUILayout.Width(60));
+        GUILayout.Label("World", GUILayout.Width(150));
+        GUILayout.Label("Subject", GUILayout.Width(150));
+        GUILayout.Label("Rename", GUILayout.Width(80));
+        GUILayout.Label("Reassign", GUILayout.Width(80));
+        GUILayout.Label("Open", GUILayout.Width(80));
+        GUILayout.Label("Edit", GUILayout.Width(80));
         GUILayout.Label("Approve", GUILayout.Width(80));
-        GUILayout.Label("Copy?", GUILayout.Width(60));
+        GUILayout.Label("Duplicate", GUILayout.Width(80));
         GUILayout.Label("Delete", GUILayout.Width(60));
         EditorGUILayout.EndHorizontal();
 
@@ -336,14 +348,8 @@ public class GenerationWindow : EditorWindow
                 reassignGeneration = genName;
             }
 
-            // More Info
-            if (GUILayout.Button("More Info", GUILayout.Width(80)))
-            {
-                infoGeneration = (infoGeneration == genName) ? null : genName;
-            }
-
-            // Test button
-            if (GUILayout.Button("Test", GUILayout.Width(60)))
+            // Open button
+            if (GUILayout.Button("Open", GUILayout.Width(80)))
             {
                 string generationsRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "Generations"));
                 string scenePath = Path.ChangeExtension(Path.Combine(generationsRoot, genName), ".unity");
@@ -372,6 +378,14 @@ public class GenerationWindow : EditorWindow
                 }
             }
 
+            // Edit button
+            if (GUILayout.Button("Edit", GUILayout.Width(80)))
+            {
+                editWorld = (editWorld == genName) ? null : genName;
+            }
+
+            
+
             // Approve button
             if (GUILayout.Button("Approve", GUILayout.Width(80)))
             {
@@ -379,7 +393,7 @@ public class GenerationWindow : EditorWindow
             }
 
             // Copy button
-            if (GUILayout.Button("Copy", GUILayout.Width(60)))
+            if (GUILayout.Button("Duplicate", GUILayout.Width(80)))
             {
                 string copyGenName = genName + "_Copy";
                 generations[copyGenName] = generations[genName];
@@ -424,15 +438,18 @@ public class GenerationWindow : EditorWindow
             EditorGUILayout.EndHorizontal();
 
             // Expanded More Info
-            if (infoGeneration == genName)
+            if (editWorld == genName)
             {
                 EditorGUI.indentLevel++;
-                foreach (var kv2 in data)
+                generationName = genName;
+                userPrompt = EditorGUILayout.TextField("Prompt:", userPrompt);
+                
+                if (GUILayout.Button("Go", GUILayout.Width(150)))
                 {
-                    if (kv2.Key == "Subject") continue;
-                    EditorGUILayout.LabelField($"{kv2.Key}: {kv2.Value}");
+                    Generate();
+                    
                 }
-                EditorGUI.indentLevel--;
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
                 EditorGUILayout.Space();
             }
 
@@ -584,7 +601,6 @@ public class GenerationWindow : EditorWindow
             entry.genName = kvp.Key;
             entry.Subject = kvp.Value["Subject"];
             entry.Prompt = kvp.Value["Prompt"];
-            entry.AssetProject = kvp.Value["Asset Project"];
             entry.Approved = kvp.Value["Approved"];
             wrapper.generations.Add(entry);
         }
@@ -615,7 +631,6 @@ public class GenerationWindow : EditorWindow
             Dictionary<string, string> dict = new Dictionary<string, string>();
             dict["Subject"] = entry.Subject;
             dict["Prompt"] = entry.Prompt;
-            dict["Asset Project"] = entry.AssetProject;
             dict["Approved"] = entry.Approved;
             generations[entry.genName] = dict;
         }
@@ -695,12 +710,12 @@ public class GenerationWindow : EditorWindow
     }
     
 
-    private void Generate()
+    private async void Generate()
     {
         {
             string url =
                 "http://127.0.0.1:5000/generate" +
-                $"?scene_name={UnityWebRequest.EscapeURL(generationName)}" +
+                $"?world_name={UnityWebRequest.EscapeURL(generationName)}" +
                 $"&prompt={UnityWebRequest.EscapeURL(promptText)}" +
                 $"&assets={UnityWebRequest.EscapeURL(Application.dataPath)}";
 
@@ -715,21 +730,17 @@ public class GenerationWindow : EditorWindow
             {
                 UnityEngine.Debug.LogError(request.error);
             }
-            else
-            {
-                UnityEngine.Debug.Log("Generation started");
-            }
         }
 
         Dictionary<string, string> dict = new Dictionary<string, string>();
-        dict["Subject"] = string.IsNullOrEmpty(targetSubject) ? "Unknown" : targetSubject;
+        dict["Subject"] = string.IsNullOrEmpty(targetSubject) ? "Unassigned" : targetSubject;
         dict["Prompt"] = string.IsNullOrEmpty(promptText) ? "" : promptText;
         dict["Assets"] = string.IsNullOrEmpty(Application.dataPath) ? "" : Application.dataPath;
         dict["Approved"] = "false";
 
         if (generations.ContainsKey(generationName))
         {
-            UnityEngine.Debug.LogWarning($"Generation '{generationName}' already exists. Overwriting metadata.");
+            UnityEngine.Debug.LogWarning($"'{generationName}' already exists. Overwriting metadata.");
             generations[generationName] = dict;
         }
         else
@@ -1082,7 +1093,6 @@ public static class GenerationsLoader
             Dictionary<string, string> dict = new Dictionary<string, string>();
             dict["Subject"] = entry.Subject;
             dict["Prompt"] = entry.Prompt;
-            dict["Asset Project"] = entry.AssetProject;
             dict["Approved"] = entry.Approved;
             generations[entry.genName] = dict;
         }
