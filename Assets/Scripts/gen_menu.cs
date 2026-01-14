@@ -24,8 +24,9 @@ public class GenerationWindow : EditorWindow
     private bool premadePromptToggle = false;
     private string[] premadePrompts = {
         "Select...",
-        "Generate a world that triggers acrophobia while crossing a bridge",
-        "Generate a world where I'm on a skyscraper."
+        "(For testing) Make a scene with JUST a skybox and nothing else.",
+        "Make a city scene in which I (the player) am placed on a tall building.",
+        "(Chat) Hello! How do you work?"
     };
     private int selectedPromptIndex = 0;
     private string promptText = "";
@@ -1141,3 +1142,4 @@ public class GenerationsWrapper
 {
     public List<GenerationEntry> generations = new List<GenerationEntry>();
 }
+
