@@ -142,10 +142,11 @@ public class EditGeneration : EditorWindow
 
     private void OnSubmitClicked()
     {   
-        string worldName = _worldNameChangeToggle.value == true ? _newWorldNameField.value : _currentWorldNameField.value;
+        string _outputWorldName = _worldNameChangeToggle.value == true ? _newWorldNameField.value : _currentWorldNameField.value;
         GeneratorRequest request = new GeneratorRequest
         {
-            worldName = worldName,
+            worldName = _currentWorldNameField.value,
+            outputWorldName = _outputWorldName,
             multiSceneMode = (MultiSceneMode)_multiSceneField.value,
             prompt = _promptField.value,
             subjectType = (SubjectType)_subjectTypeField.value,
@@ -158,7 +159,7 @@ public class EditGeneration : EditorWindow
 
         request.Send();
 
-        GenerationsLoader.DumpGeneration(worldName, _promptField.value);
+        GenerationsLoader.DumpGeneration(_outputWorldName, _promptField.value);
     }
 
     

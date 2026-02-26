@@ -1,7 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-using UnityEngine;
-using UnityEditor;
+
 using System;
 using System.Runtime.InteropServices;
 using System.IO;

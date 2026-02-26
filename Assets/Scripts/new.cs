@@ -101,6 +101,7 @@ public class NewGeneration : EditorWindow
         GeneratorRequest request = new GeneratorRequest
         {
             worldName = _worldNameField.value,
+            outputWorldName = _worldNameField.value,
             multiSceneMode = (MultiSceneMode)_multiSceneField.value,
             prompt = _promptField.value,
             subjectType = (SubjectType)_subjectTypeField.value,
@@ -109,7 +110,6 @@ public class NewGeneration : EditorWindow
                 && _vrDataToggle.value
         };
 
-        UnityEngine.Debug.Log("Generator Request Created:");
         UnityEngine.Debug.Log("Generator Request Created:" + JsonUtility.ToJson(request, true));
 
         request.Send();

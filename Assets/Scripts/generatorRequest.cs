@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 public class GeneratorRequest
 {
     public string worldName;
+    public string outputWorldName;
     public MultiSceneMode multiSceneMode;
     public string prompt;
     public SubjectType subjectType;
@@ -35,9 +36,11 @@ public class GeneratorRequest
             string url =
                 "http://127.0.0.1:5000/generate" +
                 $"?world_name={UnityWebRequest.EscapeURL(worldName)}" +
+                $"&output_world_name={UnityWebRequest.EscapeURL(outputWorldName)}" +
                 $"&multi_scene_mode={UnityWebRequest.EscapeURL(multiSceneMode.ToString())}" +
                 $"&prompt={UnityWebRequest.EscapeURL(prompt)}" +
                 $"&subject_type={UnityWebRequest.EscapeURL(subjectType.ToString())}" +
+                $"&use_data_collection_assets={UnityWebRequest.EscapeURL(useDataCollectionAssets.ToString())}" +
                 $"&assets={UnityWebRequest.EscapeURL(Application.dataPath)}";
 
             using (UnityWebRequest request = UnityWebRequest.Get(url))
