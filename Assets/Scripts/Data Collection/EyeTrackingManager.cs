@@ -279,9 +279,9 @@ namespace ViveSR.anipal.Eye
             int colorVal = 0;
             byte colorByte = (byte)colorVal;
             //UnityMainThreadDispatcher.Instance().Enqueue(() => PupilCalibrationLog("pupil_calibration_started", 0f));
-            Canvas canvas = calibrationScreen.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera; // Make sure it's Screen Space - Camera
-            canvas.worldCamera = luminanceCamera;
+            //Canvas canvas = calibrationScreen.GetComponent<Canvas>();
+            //canvas.renderMode = RenderMode.ScreenSpaceCamera; // Make sure it's Screen Space - Camera
+            //canvas.worldCamera = luminanceCamera;
             calibrationScreen.SetActive(true);
             calibrating = true;
             for (int i = 0; i < 18; i++)
