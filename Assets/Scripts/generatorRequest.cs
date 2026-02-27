@@ -37,7 +37,7 @@ public class GeneratorRequest
                 "http://127.0.0.1:5000/generate" +
                 $"?world_name={UnityWebRequest.EscapeURL(worldName)}" +
                 $"&output_world_name={UnityWebRequest.EscapeURL(outputWorldName)}" +
-                $"&multi_scene_mode={UnityWebRequest.EscapeURL(multiSceneMode.ToString())}" +
+                $"&multi_stage_mode={UnityWebRequest.EscapeURL(multiSceneMode.ToString())}" +
                 $"&prompt={UnityWebRequest.EscapeURL(prompt)}" +
                 $"&subject_type={UnityWebRequest.EscapeURL(subjectType.ToString())}" +
                 $"&use_data_collection_assets={UnityWebRequest.EscapeURL(useDataCollectionAssets.ToString())}" +
