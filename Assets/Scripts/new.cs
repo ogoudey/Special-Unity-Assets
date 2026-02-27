@@ -4,11 +4,10 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System;
 using System.Diagnostics;
-public enum MultiSceneMode
+public enum MultiStageMode
 {
-    Yes,
-    No,
-    Auto
+    Multi,
+    Single
 }
 
 public enum SubjectType
@@ -21,7 +20,7 @@ public enum SubjectType
 public class NewGeneration : EditorWindow
 {
     private TextField _worldNameField;
-    private EnumField _multiSceneField;
+    private EnumField _multiStageField;
     private TextField _promptField;
     private EnumField _subjectTypeField;
     private Toggle _vrDataToggle;
@@ -60,8 +59,8 @@ public class NewGeneration : EditorWindow
         root.Add(_worldNameField);
 
         // Multi-Scene Selector
-        _multiSceneField = new EnumField("Multi-Scene Mode", MultiSceneMode.Auto);
-        root.Add(_multiSceneField);
+        _multiStageField = new EnumField("Multi-Scene Mode", MultiStageMode.Multi);
+        root.Add(_multiStageField);
 
         // Prompt (multiline)
         _promptField = new TextField("Prompt");
@@ -102,7 +101,7 @@ public class NewGeneration : EditorWindow
         {
             worldName = _worldNameField.value,
             outputWorldName = _worldNameField.value,
-            multiSceneMode = (MultiSceneMode)_multiSceneField.value,
+            multiStageMode = (MultiStageMode)_multiStageField.value,
             prompt = _promptField.value,
             subjectType = (SubjectType)_subjectTypeField.value,
             useDataCollectionAssets =

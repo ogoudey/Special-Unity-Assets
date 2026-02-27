@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 public class EditGeneration : EditorWindow
 {
-    private EnumField _multiSceneField;
+    private EnumField _multiStageField;
     private TextField _promptField;
     private EnumField _subjectTypeField;
     private Toggle _vrDataToggle;
@@ -104,8 +104,8 @@ public class EditGeneration : EditorWindow
 
 
         // Multi-Scene Selector
-        _multiSceneField = new EnumField("Multi-Scene Mode", MultiSceneMode.Auto);
-        root.Add(_multiSceneField);
+        _multiStageField = new EnumField("Multi-Scene Mode", MultiStageMode.Multi);
+        root.Add(_multiStageField);
 
         // Prompt (multiline)
         _promptField = new TextField("Edit Prompt");
@@ -147,7 +147,7 @@ public class EditGeneration : EditorWindow
         {
             worldName = _currentWorldNameField.value,
             outputWorldName = _outputWorldName,
-            multiSceneMode = (MultiSceneMode)_multiSceneField.value,
+            multiStageMode = (MultiStageMode)_multiStageField.value,
             prompt = _promptField.value,
             subjectType = (SubjectType)_subjectTypeField.value,
             useDataCollectionAssets =

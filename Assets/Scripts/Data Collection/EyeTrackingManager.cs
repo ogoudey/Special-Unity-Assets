@@ -44,6 +44,7 @@ namespace ViveSR.anipal.Eye
         private static int callbackCount = 0;
         private const int logEveryN = 10;
         private static string logPath;
+        public string stage = "Calibration";
         private static StreamWriter writer;
         private static StreamWriter incrementsWriter;
         private static Queue<string> logQueue = new Queue<string>();
@@ -129,7 +130,7 @@ namespace ViveSR.anipal.Eye
             string logPath = Path.Combine(logDirectory, "eye_tracking_log_test.csv");
 
             writer = new StreamWriter(logPath);
-            writer.WriteLine("Timestamp,Luminance,PupilDiameterLeft,PupilDiameterRight,GazeLeftX,GazeLeftY,GazeLeftZ,GazeRightX,GazeRightY,GazeRightZ"); // header row
+            writer.WriteLine("Stage,Timestamp,Luminance,PupilDiameterLeft,PupilDiameterRight,GazeLeftX,GazeLeftY,GazeLeftZ,GazeRightX,GazeRightY,GazeRightZ"); // header row
             writer.Flush();
 
             UnityEngine.Debug.Log("EyeCallback logging to: " + logPath);     
@@ -195,7 +196,8 @@ namespace ViveSR.anipal.Eye
             var pupilRight = eyeData.verbose_data.right.pupil_diameter_mm;
             var gazeLeft = eyeData.verbose_data.left.gaze_direction_normalized;
             var gazeRight = eyeData.verbose_data.right.gaze_direction_normalized;
-            string line = $"{timestamp:F3},{luminance},{pupilLeft},{pupilRight}," +
+            
+            string line = $"{instance.stage},{timestamp:F3},{luminance},{pupilLeft},{pupilRight}," +
                     $"{gazeLeft.x},{gazeLeft.y},{gazeLeft.z}," +
                     $"{gazeRight.x},{gazeRight.y},{gazeRight.z},";
             UnityEngine.Debug.Log($"Line: {line}");
@@ -271,7 +273,7 @@ namespace ViveSR.anipal.Eye
             string incPath = Path.Combine(logDirectory, "increments.csv");
             incrementsWriter = new StreamWriter(incPath);
             UnityEngine.Debug.Log("Calibration logging to: " + incPath);    
-            incrementsWriter.WriteLine("Timestamp,Luminance,PupilDiameterLeft,PupilDiameterRight,GazeLeftX,GazeLeftY,GazeLeftZ,GazeRightX,GazeRightY,GazeRightZ"); // header row
+            incrementsWriter.WriteLine("Stage,Timestamp,Luminance,PupilDiameterLeft,PupilDiameterRight,GazeLeftX,GazeLeftY,GazeLeftZ,GazeRightX,GazeRightY,GazeRightZ"); // header row
             incrementsWriter.Flush();
             
             RawImage rawImage = calibrationScreen.GetComponent(typeof(RawImage)) as RawImage;
